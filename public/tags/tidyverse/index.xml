@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tidyverse on eseras</title>
+    <link>/tags/tidyverse/</link>
+    <description>Recent content in tidyverse on eseras</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>es-es</language>
+    <lastBuildDate>Sun, 26 Jul 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/tidyverse/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Uso de Google Earth Engine para elaboración de mapas</title>
+      <link>/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/</link>
+      <pubDate>Sun, 26 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/</guid>
+      <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Uso del paquete rgee para generar mapas estáticos con ggplot2.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

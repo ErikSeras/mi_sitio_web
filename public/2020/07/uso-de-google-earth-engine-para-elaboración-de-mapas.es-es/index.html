@@ -12,7 +12,7 @@
 
 
 
-Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-2A para generar un mapa estático de NDVI.
+Uso del paquete rgee para generar mapas estáticos con ggplot2.
 ">
 
 
@@ -20,33 +20,33 @@ Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-
 
 
 
-Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-2A para generar un mapa estático de NDVI.
+Uso del paquete rgee para generar mapas estáticos con ggplot2.
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Elaboración de mapa de NDVI con tmap">
-<meta name="twitter:title" content="Elaboración de mapa de NDVI con tmap">
-<meta property="og:url" content="/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
-<meta property="twitter:url" content="/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+<meta property="og:title" content="Uso de Google Earth Engine para elaboración de mapas">
+<meta name="twitter:title" content="Uso de Google Earth Engine para elaboración de mapas">
+<meta property="og:url" content="/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
+<meta property="twitter:url" content="/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
 <meta property="og:site_name" content="eseras">
 <meta property="og:description" content="
 
 
 
-Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-2A para generar un mapa estático de NDVI.
+Uso del paquete rgee para generar mapas estáticos con ggplot2.
 ">
 <meta name="twitter:description" content="
 
 
 
-Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-2A para generar un mapa estático de NDVI.
+Uso del paquete rgee para generar mapas estáticos con ggplot2.
 ">
 <meta property="og:locale" content="es-es">
 
   
-    <meta property="article:published_time" content="2020-08-27T00:00:00">
+    <meta property="article:published_time" content="2020-07-26T00:00:00">
   
   
-    <meta property="article:modified_time" content="2020-08-27T00:00:00">
+    <meta property="article:modified_time" content="2020-07-26T00:00:00">
   
   
   
@@ -60,9 +60,9 @@ Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-
     
       <meta property="article:tag" content="rgee">
     
-      <meta property="article:tag" content="leaflet">
+      <meta property="article:tag" content="tidyverse">
     
-      <meta property="article:tag" content="tmap">
+      <meta property="article:tag" content="ggplot2">
     
   
 
@@ -83,14 +83,14 @@ Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-
   <meta property="twitter:image" content="/img/perfil.png">
 
 
-    <title>Elaboración de mapa de NDVI con tmap</title>
+    <title>Uso de Google Earth Engine para elaboración de mapas</title>
 
     <link rel="icon" href="/favicon.png">
     
 
     
 
-    <link rel="canonical" href="/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+    <link rel="canonical" href="/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -240,19 +240,19 @@ Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Elaboración de mapa de NDVI con tmap
+      Uso de Google Earth Engine para elaboración de mapas
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2020-08-27T00:00:00Z">
+      <time itemprop="datePublished" datetime="2020-07-26T00:00:00Z">
         
   
   
   
   
-    2020-08-27
+    2020-07-26
   
 
       </time>
@@ -274,23 +274,42 @@ Ejemplo de uso de una imagen de Sentinel-2 MSI: MultiSpectral Instrument, Level-
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p><a href="https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/overview">Sentinel-2</a> es una misión de imágenes multiespectrales de alta resolución que apoya los estudios de monitoreo de tierras de Copérnico, incluyendo el monitoreo de la vegetación, el suelo y la cubierta del agua, así como la observación de vías navegables interiores y áreas costeras.</p>
-<p>Y una de las formas de procesar estos datos satelitales es Google Earth Engine (GEE), una plataforma basada en la nube para el análisis geoespacial a escala planetaria (<a href="https://doi.org/10.1016/j.rse.2017.06.031">Gorelick et al., 2017</a>).</p>
-<p>En el presente ejemplo se presentará algunos pasos que permite la generación de mapas usando directamente los datos del dataset <a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR#description">Sentinel-2 MSI: MultiSpectral Instrument, Level-2A</a> de GEE mediante el lenguaje R y algunos de sus paquetes que permiten tal proceso.</p>
-<p>Para comenzar necesitará tener los <a href="https://drive.google.com/drive/folders/1yDB9oZBS6ZSZ-U1Rf7WsNlLdaHdHl-3z?usp=sharing">archivos</a> del área de interés descagar y ubicarlos en una carpeta dentro de su proyecto. Y se usará los paquetes <a href="https://github.com/r-spatial/rgee"><code>rgee</code></a>, <a href="https://github.com/r-spatial/sf"><code>sf</code></a>, <a href="https://github.com/rspatial/raster"><code>raster</code></a>, <a href="https://github.com/tidyverse/tidyverse"><code>tidyverse</code></a> y <a href="https://github.com/mtennekes/tmap"><code>tmap</code></a>.</p>
+              <p>Google Earth Engine <a href="https://earthengine.google.com/">(GEE)</a> es una plataforma basada en la nube para el análisis geoespacial a escala planetaria (<a href="https://doi.org/10.1016/j.rse.2017.06.031">Gorelick et al., 2017</a>). Esta usa javascript para el procesamiento de las imágenes, pero también se puede usar con Python y R mediante el uso del paquete <a href="https://github.com/giswqs/geemap"><code>geemap</code></a> y <a href="https://github.com/r-spatial/rgee"><code>rgee</code></a> respectivamente.</p>
+<p>Para comenzar necesitará tener los <a href="https://drive.google.com/drive/folders/1yDB9oZBS6ZSZ-U1Rf7WsNlLdaHdHl-3z?usp=sharing">archivos</a> del área de interés descagar y ubicarlos en una carpeta dentro de su proyecto.</p>
 <div id="librerías-necesarias" class="section level2">
 <h2>Librerías necesarias</h2>
 <p>Leer la documentación en github para su adecuada instalación de <code>rgee</code>. Los demás paquetes si se puede instalar normalmente con la función <code>pacman::p_load()</code> si es que no lo tiene con anterioridad.</p>
 <pre class="r"><code>## Carga de librerías
 require(pacman)
+
 pacman::p_load(
-        rgee, sf, raster, tidyverse, tmap
+        rgee, sf, raster, tidyverse, ggspatial, RColorBrewer,
+        extrafont, rasterVis
 )</code></pre>
 </div>
 <div id="inicio-de-sesión-de-google-earth-engine" class="section level2">
 <h2>Inicio de sesión de Google Earth Engine</h2>
 <pre class="r"><code>## Iniciar la sesión de GEE
-rgee::ee_Initialize()</code></pre>
+ee_Initialize()</code></pre>
+</div>
+<div id="área-de-la-loma" class="section level2">
+<h2>Área de la Loma</h2>
+<p>Cargar el archivo shape descargado.</p>
+<pre class="r"><code>## Dirección de los archivos shape descargados
+datos_mapa &lt;-  &quot;dirección del shape&quot; ## Ejemplo: &quot;data/ACR/ACR.shp&quot;
+
+## Shaoe del área de interés
+loma_shape &lt;- 
+        ## Cambiar la ubicación  en donde usted guardó su archivo shapefile
+        raster::shapefile(datos_mapa) %&gt;% 
+        ## Convertir sp a sf
+        sf::st_as_sf(loma_shape) %&gt;% 
+        ## Obtener el shape de Lomas de Villa María
+        dplyr::filter(acr_codi == &quot;ACR23&quot; &amp; objectid == 2924) %&gt;% 
+        ## UTM 18S
+        sf::st_transform(
+                crs = &quot;+proj=utm +zone=18 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs&quot;
+        ) %&gt;% sf::as_Spatial()</code></pre>
 </div>
 <div id="filtro-de-nube" class="section level2">
 <h2>Filtro de nube</h2>
@@ -325,41 +344,21 @@ s2_clean &lt;- function(img) {
 box &lt;- ee$Geometry$Rectangle(coords = c(-76.97,-12.17,-76.90,-12.10),
                              ## WGS 84
                              proj = &quot;EPSG:4326&quot;,
-                             geodesic = FALSE
-)
+                             geodesic = FALSE)
 
-## Filtrar las nuebes de la imagen seleccionada
+## Escoger una imagen
 image &lt;- ee$ImageCollection(ee$Image(&quot;COPERNICUS/S2_SR/20191028T151711_20191028T152253_T18LTM&quot;))$
         map(s2_clean)$first()
 
-## Generar imagen NDVI
+## NDVI
 ndvi &lt;- image$normalizedDifference(c(&quot;B8&quot;, &quot;B4&quot;))</code></pre>
-</div>
-<div id="área-de-la-loma" class="section level2">
-<h2>Área de la Loma</h2>
-<p>Cargar el archivo shape descargado.</p>
-<pre class="r"><code>## Dirección de los archivos shape descargados
-datos_mapa &lt;-  &quot;dirección del shape&quot; ## Ejemplo: &quot;data/ACR/ACR.shp&quot;
-
-## Shaoe del área de interés
-loma_shape &lt;- 
-        ## Cambiar la ubicación  en donde usted guardó su archivo shapefile
-        raster::shapefile(datos_mapa) %&gt;% 
-        ## Convertir sp a sf
-        sf::st_as_sf(loma_shape) %&gt;% 
-        ## Obtener el shape de Lomas de Villa María
-        dplyr::filter(acr_codi == &quot;ACR23&quot; &amp; objectid == 2924) %&gt;% 
-        ## UTM 18S
-        sf::st_transform(
-                crs = &quot;+proj=utm +zone=18 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs&quot;
-        )</code></pre>
 </div>
 <div id="obtención-del-raster-de-ndvi" class="section level2">
 <h2>Obtención del raster de NDVI</h2>
 <p>Guardar en una variable la imagen raster procesada en GEE.</p>
 <pre class="r"><code>## Raster de NDVI del área de interés
 raster_ndvi &lt;- 
-        ## Convertir objeto ee a raster
+        ## Convertir ee a raster
         rgee::ee_as_raster(
         image = ndvi,
         region = box,
@@ -375,60 +374,82 @@ raster_ndvi &lt;-
 <div id="mapa-con-tmap" class="section level2">
 <h2>Mapa con tmap</h2>
 <p>Guardar en una variable el mapa generado.</p>
-<pre class="r"><code>map_ndvi &lt;- tm_shape(raster_ndvi) +
-        ## Características del raster en el mapa
-        tm_raster(style = &quot;fixed&quot;, title = &quot;NDVI&quot;,
-                  palette = c(&quot;#ff0707&quot;,&quot;#fff823&quot;,&quot;#45ff17&quot;,&quot;#13deff&quot;,
-                                &quot;#1d4eff&quot;,&quot;#dc1dff&quot;,&quot;#be3ea8&quot;),
-                  legend.hist = TRUE, n = 6, 
-                  breaks = c(raster::minValue(raster_ndvi), 0.1, 0.2, 0.3, 0.4,
-                             0.5, 0.6, raster::maxValue(raster_ndvi))) +
-        tm_legend(outside = TRUE) +
-        ## Añadir un barra de escala al mapa
-        tm_scale_bar(
-                position = c(&quot;left&quot;, &quot;bottom&quot;), breaks = c(0, 0.5, 1),
-                text.size = 0.7
+<pre class="r"><code>mapa_final &lt;- 
+        ## Ploteo del raster
+        rasterVis::gplot(raster_ndvi) +
+        ggplot2::geom_tile(aes(fill = value))  +
+        ## Establecer colores de los pixel
+        ggplot2::scale_fill_gradientn(
+                colours = RColorBrewer::brewer.pal(n = 8, name = &quot;BuGn&quot;),
+                na.value = &#39;white&#39;
         ) +
-        tm_compass(
-                size = 2, position = c(&quot;right&quot;, &quot;top&quot;),
-                type = &quot;4star&quot;
+        ## Añadir el shape
+        ggplot2::geom_polygon(
+                data = loma_shape, aes(x=long, y = lat, group = group),
+                     color = &#39;grey&#39;, fill=&#39;NA&#39;
         ) +
-        ## Añadir los créditos del mapa
-        tm_credits(text = &quot;Poner su nombre&quot;,
-                   size = 0.8, position = c(&quot;right&quot;, &quot;bottom&quot;)) +
-        ## Uso de un estilo predeterminado
-        tm_style(&quot;cobalt&quot;, legend.position = c(&quot;left&quot;,&quot;center&quot;),
-                 legend.format = list(text.separator= &quot;-&quot;)) +
-        ## Arreglos generales del mapa a generar
-        tm_layout(
-                title = &quot;Título del mapa&quot;,
-                title.position = c(&quot;center&quot;, &quot;top&quot;),
-                inner.margins = 0.05
-        )
-
-map_ndvi</code></pre>
+        ## Arreglar el sistema de coordenadas del gráfico
+        ggspatial::coord_sf(crs = crs(loma_shape)) +
+        ggplot2::ggtitle(
+                &quot;Escribir el título del mapa&quot;,
+                subtitle = &quot;Escribir el autor del mapa&quot;
+        ) +
+        ## Añadir etiquetas de ejes
+        ggplot2::labs(
+                x=&quot;&quot;, y=&quot;&quot;, fill = &quot;NDVI&quot;,
+             caption =&quot;Escribir la fuente de sus archivos&quot;
+        ) +
+        ## Tema del gráfico
+        ggplot2::theme_bw()  +
+        ## Personalizar el tema del gráfico
+        ggplot2::theme(
+                ## Establecer los colores del fonodo del gráfico y su contorno
+                panel.background = element_rect(
+                        fill = &#39;white&#39;, colour = &#39;black&#39;
+                ),
+                ## No mostrar las grillas mayores
+                panel.grid.major = element_blank(),
+                ## No mostrar las grillas menores
+                panel.grid.minor = element_blank(),
+                ## Ubicar a la derecha la legenda
+                legend.position = &#39;right&#39;,
+                ## Ubicar al medio el título
+                plot.title = element_text(hjust = 0.5),
+                ## ubicar en el medio el título
+                plot.subtitle = element_text(hjust = 0.5),
+                ## Ajustar el centrado de las coordenadas de latitud del eje y
+                axis.text.y = element_text(vjust = 0.5),
+                ## Ajustar el centrado de las coordenadas de latitud del eje x
+                axis.text.x = element_text(vjust = 0.5),
+                ## Ancho de la barra de la leyenda
+                legend.key.width = unit(1.5, &#39;line&#39;)
+        ) +
+        ## Añadir barra de escala
+        ggspatial::annotation_scale(
+                location = &quot;br&quot;, 
+        ) +
+        ## Añadir el norte
+        ggspatial::annotation_north_arrow(
+                location = &quot;tr&quot;, which_north = &quot;true&quot;,
+                               style = north_arrow_fancy_orienteering, 
+                               height = unit(1.2, &quot;cm&quot;),
+                               width = unit(1.2, &quot;cm&quot;)
+        )</code></pre>
 </div>
 <div id="guardar-el-mapa" class="section level2">
 <h2>Guardar el mapa</h2>
 <p>Puede guardar en diferentes formatos los mapas generados.</p>
-<pre class="r"><code>## png
-tmap::tmap_save(
-        tm = map_ndvi,
-        filename = &quot;Nombre de archivo de salida&quot;, ## Ejemplo: &quot;map_ndvi.png&quot;
-        units = &quot;cm&quot;, height = 15, width = 15,
-        dpi = 900
-)
-
-## pdf
-tmap::tmap_save(
-        tm = map_ndvi,
-        filename = &quot;Nombre de archivo de salida&quot;, ## Ejemplo: &quot;map_ndvi.pdf&quot;
-        units = &quot;cm&quot;, height = 15, width = 15,
-        dpi = 900
-)</code></pre>
+<pre class="r"><code>## Guardar el mapa
+ggplot2::ggsave(
+        ## Cambiar la direeción a donde usted quiera guardar el gráfico
+        filename =  &#39;Nombre de archivo de salida&#39;, ## Ejemplo: ndvi.png
+        plot = mapa_final,
+        units = &quot;cm&quot;, width = 20, 
+        height = 20, dpi = 900
+) </code></pre>
 <div class="figure">
-<img src="/foo/map_ndvi.png" alt="" />
-<p class="caption">Ejemplo de mapa generado en formato png</p>
+<img src="/foo/ndvi.png" alt="" />
+<p class="caption">Ejemplo de mapa generado con rgee y ggplot2 en formato png</p>
 </div>
 </div>
 
@@ -445,9 +466,9 @@ tmap::tmap_save(
                     
   <a class="tag tag--primary tag--small" href="/tags/rgee/">rgee</a>
 
-  <a class="tag tag--primary tag--small" href="/tags/leaflet/">leaflet</a>
+  <a class="tag tag--primary tag--small" href="/tags/tidyverse/">tidyverse</a>
 
-  <a class="tag tag--primary tag--small" href="/tags/tmap/">tmap</a>
+  <a class="tag tag--primary tag--small" href="/tags/ggplot2/">ggplot2</a>
 
                   </div>
                 
@@ -460,7 +481,7 @@ tmap::tmap_save(
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/" data-tooltip="Elaboración de mapa de NDVI con tmap">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">SIGUIENTE</span>
@@ -468,7 +489,7 @@ tmap::tmap_save(
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/" data-tooltip="Uso de Google Earth Engine para elaboración de mapas">
+                <a class="post-action-btn btn btn--disabled">
               
                   <span class="hide-xs hide-sm text-small icon-mr">ANTERIOR</span>
                   <i class="fa fa-angle-right"></i>
@@ -486,19 +507,19 @@ tmap::tmap_save(
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -536,7 +557,7 @@ tmap::tmap_save(
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/" data-tooltip="Elaboración de mapa de NDVI con tmap">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">SIGUIENTE</span>
@@ -544,7 +565,7 @@ tmap::tmap_save(
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/" data-tooltip="Uso de Google Earth Engine para elaboración de mapas">
+                <a class="post-action-btn btn btn--disabled">
               
                   <span class="hide-xs hide-sm text-small icon-mr">ANTERIOR</span>
                   <i class="fa fa-angle-right"></i>
@@ -562,19 +583,19 @@ tmap::tmap_save(
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=/2020/08/elaboraci%C3%B3n-de-mapa-de-ndvi-con-tmap.es-es/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=/2020/07/uso-de-google-earth-engine-para-elaboraci%C3%B3n-de-mapas.es-es/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -598,19 +619,19 @@ tmap::tmap_save(
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=%2F2020%2F08%2Felaboraci%25C3%25B3n-de-mapa-de-ndvi-con-tmap.es-es%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=%2F2020%2F07%2Fuso-de-google-earth-engine-para-elaboraci%25C3%25B3n-de-mapas.es-es%2F">
           <i class="fa fa-facebook-official"></i><span>Compartir en Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=%2F2020%2F08%2Felaboraci%25C3%25B3n-de-mapa-de-ndvi-con-tmap.es-es%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=%2F2020%2F07%2Fuso-de-google-earth-engine-para-elaboraci%25C3%25B3n-de-mapas.es-es%2F">
           <i class="fa fa-twitter"></i><span>Compartir en Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=%2F2020%2F08%2Felaboraci%25C3%25B3n-de-mapa-de-ndvi-con-tmap.es-es%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=%2F2020%2F07%2Fuso-de-google-earth-engine-para-elaboraci%25C3%25B3n-de-mapas.es-es%2F">
           <i class="fa fa-google-plus"></i><span>Compartir en Google&#43;</span>
         </a>
       </li>

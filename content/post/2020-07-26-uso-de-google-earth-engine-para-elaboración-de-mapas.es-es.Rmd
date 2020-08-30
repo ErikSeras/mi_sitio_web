@@ -1,0 +1,228 @@
+---
+title: Uso de Google Earth Engine para elaboración de mapas
+author: Erik Seras
+date: '2020-07-26'
+slug: uso-de-google-earth-engine-para-elaboración-de-mapas.es-es
+categories:
+  - R
+  - Sentinel 2
+tags:
+  - rgee
+  - tidyverse
+  - ggplot2
+keywords:
+  - tech
+---
+
+Uso del paquete rgee para generar mapas estáticos con ggplot2.
+
+<!--more-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+Google Earth Engine [(GEE)](https://earthengine.google.com/) es una plataforma basada en la nube para el análisis geoespacial a escala planetaria ([Gorelick et al., 2017](https://doi.org/10.1016/j.rse.2017.06.031)). Esta usa javascript para el procesamiento de las imágenes, pero también se puede usar con Python y R mediante el uso del paquete [`geemap`](https://github.com/giswqs/geemap) y [`rgee`](https://github.com/r-spatial/rgee) respectivamente.
+
+Para comenzar necesitará tener los [archivos](https://drive.google.com/drive/folders/1yDB9oZBS6ZSZ-U1Rf7WsNlLdaHdHl-3z?usp=sharing) del área de interés descagar y ubicarlos en una carpeta dentro de su proyecto. 
+
+## Librerías necesarias
+
+Leer la documentación en github para su adecuada instalación de `rgee`. Los demás paquetes si se puede instalar normalmente con la función `pacman::p_load()` si es que no lo tiene con anterioridad.
+
+```{r eval=FALSE}
+## Carga de librerías
+require(pacman)
+
+pacman::p_load(
+        rgee, sf, raster, tidyverse, ggspatial, RColorBrewer,
+        extrafont, rasterVis
+)
+```
+
+## Inicio de sesión de Google Earth Engine
+
+```{r eval=FALSE}
+## Iniciar la sesión de GEE
+ee_Initialize()
+```
+
+## Área de la Loma
+
+Cargar el archivo shape descargado.
+
+```{r eval=FALSE}
+## Dirección de los archivos shape descargados
+datos_mapa <-  "dirección del shape" ## Ejemplo: "data/ACR/ACR.shp"
+
+## Shaoe del área de interés
+loma_shape <- 
+        ## Cambiar la ubicación  en donde usted guardó su archivo shapefile
+        raster::shapefile(datos_mapa) %>% 
+        ## Convertir sp a sf
+        sf::st_as_sf(loma_shape) %>% 
+        ## Obtener el shape de Lomas de Villa María
+        dplyr::filter(acr_codi == "ACR23" & objectid == 2924) %>% 
+        ## UTM 18S
+        sf::st_transform(
+                crs = "+proj=utm +zone=18 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+        ) %>% sf::as_Spatial()
+```
+
+
+## Filtro de nube
+
+El dataset Sentinel-2 MSI: MultiSpectral Instrument, Level-2A ya se encuentran procesadas con [sen2cor](https://step.esa.int/main/third-party-plugins-2/sen2cor/). Solo sería necesario filtrar las nubes.
+
+```{r eval=FALSE}
+## Código de filtro de nubes
+## https://csaybar.github.io/blog/2020/06/15/rgee_02_io/
+
+getQABits <- function(image, qa) {
+  # Convert decimal (character) to decimal (little endian)
+  qa <- sum(2^(which(rev(unlist(strsplit(as.character(qa), "")) == 1))-1))
+  # Return a single band image of the extracted QA bits, giving the qa value.
+  image$bitwiseAnd(qa)$lt(1)
+}
+
+s2_clean <- function(img) {
+  # Select only band of interest, for instance, B2,B3,B4,B8
+  img_band_selected <- img$select("B[2-4|8]")
+  
+  # quality band
+  ndvi_qa <- img$select("QA60")
+
+  # Select pixels to mask
+  quality_mask <- getQABits(ndvi_qa, "110000000000")
+  
+  # Mask pixels with value zero.
+  img_band_selected$updateMask(quality_mask)
+}
+
+```
+
+## Variables en GEE
+
+```{r eval=FALSE}
+## Área de interés
+box <- ee$Geometry$Rectangle(coords = c(-76.97,-12.17,-76.90,-12.10),
+                             ## WGS 84
+                             proj = "EPSG:4326",
+                             geodesic = FALSE)
+
+## Escoger una imagen
+image <- ee$ImageCollection(ee$Image("COPERNICUS/S2_SR/20191028T151711_20191028T152253_T18LTM"))$
+        map(s2_clean)$first()
+
+## NDVI
+ndvi <- image$normalizedDifference(c("B8", "B4"))
+```
+
+## Obtención del raster de NDVI
+
+Guardar en una variable la imagen raster procesada en GEE.
+
+```{r eval=FALSE}
+## Raster de NDVI del área de interés
+raster_ndvi <- 
+        ## Convertir ee a raster
+        rgee::ee_as_raster(
+        image = ndvi,
+        region = box,
+        scale = 10
+) %>%  
+        ## UTM 18S
+        raster::projectRaster(
+                crs = "+proj=utm +zone=18 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+        ) %>% 
+        raster::crop(loma_shape) %>% 
+        raster::mask(loma_shape)
+```
+
+## Mapa con tmap
+
+Guardar en una variable el mapa generado.
+
+```{r eval=FALSE}
+mapa_final <- 
+        ## Ploteo del raster
+        rasterVis::gplot(raster_ndvi) +
+        ggplot2::geom_tile(aes(fill = value))  +
+        ## Establecer colores de los pixel
+        ggplot2::scale_fill_gradientn(
+                colours = RColorBrewer::brewer.pal(n = 8, name = "BuGn"),
+                na.value = 'white'
+        ) +
+        ## Añadir el shape
+        ggplot2::geom_polygon(
+                data = loma_shape, aes(x=long, y = lat, group = group),
+                     color = 'grey', fill='NA'
+        ) +
+        ## Arreglar el sistema de coordenadas del gráfico
+        ggspatial::coord_sf(crs = crs(loma_shape)) +
+        ggplot2::ggtitle(
+                "Escribir el título del mapa",
+                subtitle = "Escribir el autor del mapa"
+        ) +
+        ## Añadir etiquetas de ejes
+        ggplot2::labs(
+                x="", y="", fill = "NDVI",
+             caption ="Escribir la fuente de sus archivos"
+        ) +
+        ## Tema del gráfico
+        ggplot2::theme_bw()  +
+        ## Personalizar el tema del gráfico
+        ggplot2::theme(
+                ## Establecer los colores del fonodo del gráfico y su contorno
+                panel.background = element_rect(
+                        fill = 'white', colour = 'black'
+                ),
+                ## No mostrar las grillas mayores
+                panel.grid.major = element_blank(),
+                ## No mostrar las grillas menores
+                panel.grid.minor = element_blank(),
+                ## Ubicar a la derecha la legenda
+                legend.position = 'right',
+                ## Ubicar al medio el título
+                plot.title = element_text(hjust = 0.5),
+                ## ubicar en el medio el título
+                plot.subtitle = element_text(hjust = 0.5),
+                ## Ajustar el centrado de las coordenadas de latitud del eje y
+                axis.text.y = element_text(vjust = 0.5),
+                ## Ajustar el centrado de las coordenadas de latitud del eje x
+                axis.text.x = element_text(vjust = 0.5),
+                ## Ancho de la barra de la leyenda
+                legend.key.width = unit(1.5, 'line')
+        ) +
+        ## Añadir barra de escala
+        ggspatial::annotation_scale(
+                location = "br", 
+        ) +
+        ## Añadir el norte
+        ggspatial::annotation_north_arrow(
+                location = "tr", which_north = "true",
+                               style = north_arrow_fancy_orienteering, 
+                               height = unit(1.2, "cm"),
+                               width = unit(1.2, "cm")
+        )
+```
+
+
+## Guardar el mapa
+
+Puede guardar en diferentes formatos los mapas generados.
+
+```{r eval=FALSE}
+## Guardar el mapa
+ggplot2::ggsave(
+        ## Cambiar la direeción a donde usted quiera guardar el gráfico
+        filename =  'Nombre de archivo de salida', ## Ejemplo: ndvi.png
+        plot = mapa_final,
+        units = "cm", width = 20, 
+        height = 20, dpi = 900
+) 
+```
+
+
+![Ejemplo de mapa generado con rgee y ggplot2 en formato png](/foo/ndvi.png)
+
