@@ -6,10 +6,28 @@
     <description>Recent content in Tags on eseras</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>es-es</language>
-    <lastBuildDate>Thu, 27 Aug 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 20 Sep 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>geemap</title>
+      <link>/tags/geemap/</link>
+      <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/geemap/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rgee</title>
+      <link>/tags/rgee/</link>
+      <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/rgee/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>leaflet</title>
@@ -17,15 +35,6 @@
       <pubDate>Thu, 27 Aug 2020 00:00:00 +0000</pubDate>
       
       <guid>/tags/leaflet/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>rgee</title>
-      <link>/tags/rgee/</link>
-      <pubDate>Thu, 27 Aug 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/rgee/</guid>
       <description></description>
     </item>
     

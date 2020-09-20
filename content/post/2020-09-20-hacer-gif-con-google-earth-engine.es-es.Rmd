@@ -1,0 +1,234 @@
+---
+title: Hacer GIF con Google Earth Engine
+author: Erik Seras
+date: '2020-09-20'
+slug: hacer-gif-con-google-earth-engine.es-es
+categories:
+  - R
+  - GEE
+  - Python
+  - JavaScript
+tags:
+  - rgee
+  - geemap
+keywords:
+  - GEE
+  - precipitacion
+  - katrina
+---
+
+Uso de JavaScript, Python y R para generar GIF con Google Earth Engine (GEE)
+<!--more-->
+
+La plataforma de [Google Earth Engine](https://code.earthengine.google.com/) permite hacer análisis de grandes cantidades de imágenes de diversas fuentes, tales como Sentinel, Landsat, etc. Entre estas colecciones de imágenes se encuentra la misión [GPM: Global Precipitation Measurement (GPM) v6](https://developers.google.com/earth-engine/datasets/catalog/NASA_GPM_L3_IMERG_V06). Es una misión internacional cuyo propósito es proporcionar observaciones de próxima generación de lluvia y nieve en todo el mundo cada tres horas. Esta data se puede aprovechar para ver eventos asociados con la precítación como los huracanes o tifones.
+
+En este ejemplo se usará JavaScript en la plataforma de Google Earth Engine para generar el GIF del evento del huracán Katrina durante el 28 de agosto de 2005 y ver cómo se movió durante ese día. El paquete `rgee` en R para poder obtener las fechas de la colección de imágenes de precipitación. Y el paquete `geemap` en Python para añadir texto al GIF.
+
+## Generación del GIF con JavaScript
+
+Ingresar el siguiente código en la plataforma de [Google Earth Engine](https://code.earthengine.google.com/) para poder generar en pantalla un GIF, el cual debe ser descargado manualmente a la carpeta de trabajo.
+
+```{js eval=FALSE}
+// Área de interés
+var roi = ee.Geometry.Polygon(
+  [[
+    [-107.7, 6.2],
+    [-62.3,6.2],
+    [-62.3,42.8],
+    [-107.7,42.8],
+    [-107.7,6.2]]], null,
+  false);
+
+// Datos de precipitación
+// Cambiar las fechas para tener de diferentes días
+// Buscar por cada día del 24 al 30 de agosto de 2005
+var precipitation = ee.ImageCollection('NASA/GPM_L3/IMERG_V06')
+  .filterDate('2005-08-28', '2005-08-29')
+  .filterBounds(roi)
+  .select('precipitationCal');
+
+// Países
+var country = ee.FeatureCollection("FAO/GAUL/2015/level0");
+  
+
+// Función para filtrar precipitación mayor a 0.5
+var filter = function(image) {
+  var mask = image.gt(0.5);
+  return image.updateMask(mask);
+};
+
+// Aplicar la función a cada imagen de la colección
+var precipitation_final = precipitation.map(filter);
+
+// Visualización de las imágenes de precipitación
+var visArgs = {
+  min: 0.0,
+  max: 15.0,
+  palette: [
+  '000096','0064ff', '00b4ff', '33db80', '9beb4a',
+  'ffeb00', 'ffb300', 'ff6400', 'eb1e00', 'af0000'
+]
+};
+
+// Generación de una colección de imágenes con visualización definida
+var precipítacion_color = precipitation_final.map(function(img) {
+  return img.visualize(visArgs);
+});
+
+// Definir una imagen vacía para pintar características.
+var empty = ee.Image().byte();
+
+// Pintar los bordes de los país en la imagen vacía.
+var country_border = empty
+  .paint({featureCollection: country, color: 1, width: 1})
+  // Establecer el color de los bordes de los países
+  .visualize({palette: 'A62292'});
+
+// Asignar una operación de mezcla sobre la colección de temperatura parasuperponer
+// la imagen del contorno del borde del país en todas las imágenes de la colección.
+
+var precipitacion_paises = precipítacion_color.map(function(img) {
+  return img.blend(country_border);
+});
+
+// Definir los argumentos 
+// Define arguments para los parámetros de la función de animación.
+var videoArgs = {
+  dimensions: 768,
+  region: roi,
+  framesPerSecond: 15,
+  crs: 'EPSG:4326'
+};
+
+// Generar el GIF de precipitaciones
+print(ui.Thumbnail(precipitacion_paises, videoArgs));
+```
+
+![GIF generado en Google Earth Engine](/foo/katrina_2005_08_28.gif)
+
+# Obtener las fechas de la colección de imágenes con R
+
+El paquete `rgee` permite hacer uso de la plataforma de Google Earth Engine mediante el lenguaje R. La función `rgee::ee_get_date_ic()` permite obtener fácilmente las fechas de cada imagen que compone una colección de estas. El siguiente código permite generar un csv con las fechas que posteriormente servirán para añadirlas al GIF.
+
+Visitar el repositorio de [`rgee`](https://github.com/r-spatial/rgee) para poder realizar una adecuada instalación del paquete.
+
+El siguiente código lo puede hacer en archivos `.R` o `.Rmd`.
+
+```{r eval=FALSE}
+## Librería necesaria de gee en R
+library(rgee)
+
+## Inicializar
+ee_Initialize()
+
+## Área de interés
+roi <- ee$Geometry$Polygon(
+        list(
+                c(-107.7, 6.2),
+                c(-62.3, 6.2),
+                c(-62.3, 42.8),
+                c(-107.7, 42.8)
+        )
+)
+
+# Datos de precipitación
+precipitation <- ee$ImageCollection('NASA/GPM_L3/IMERG_V06')$
+  ## Filtrar por fecha
+  filterDate('2005-08-28', '2005-08-29')$
+  ## Filtrar por la área de interés
+  filterBounds(roi)$
+  ## Seleccionar la banda
+  select('precipitationCal')
+
+## Obtener las fechas de cada imagen de la colección de imágenes
+fecha <- ee_get_date_ic(precipitation, time_end = TRUE)
+fecha_start <- fecha[2]
+fecha_end <- fecha[3]
+
+## Guardar las fechas en formato csv
+## Fecha de inicio de las imágenes
+write.csv(fecha_start, file="nombre del archivo csv en su carpeta de trabajo",
+          row.names = FALSE)
+## Fecha de fin de las imágenes
+write.csv(fecha_end, file = "nombre del archivo csv en su carpeta de trabajo",
+          row.names = FALSE)
+
+```
+
+
+# Añadir texto al GIF con Python
+
+El paquete `geemap` permite hacer uso de la plataforma de Google Earth Engine mediante el lenguaje Python. La función `geemap.add_text_to_gif()` permite personalizar el GIF añadiendo texto.
+
+Visitar el repositorio de [`geemap`](https://github.com/giswqs/geemap) para poder realizar una adecuada instalación del paquete.
+
+El siguiente código lo puede hacer en archivo `.ipynb`.
+
+```{python eval=FALSE}
+
+## Librerías
+import os
+import ee
+import geemap
+import pandas as pd
+
+## Observar el GIF de precipítaciones generado en GEE
+
+## Inicializar gee
+ee.Initialize()
+
+## Observar el GIF descargado de GEE
+saved_gif = os.path.abspath("Ubicación del GIF descargado de GEE")
+geemap.show_image(saved_gif)
+
+## Añadir lo necesario al GIF
+
+## Leer las fechas generadas en R
+fecha_start = pd.read_csv("nombre del archivo csv en su carpeta de trabajo")
+fecha_end = pd.read_csv("nombre del archivo csv en su carpeta de trabajo")
+
+## Hacer listas de las fechas
+fecha_star_list = fecha_start["time_start"].tolist()
+fecha_end_list = fecha_end["time_end"].tolist()
+
+## Dirección del GIF a modificar
+in_gif = os.path.abspath('Ubicación del GIF descargado de GEE')
+
+## Dirección del GIF modificado
+out_gif = os.path.abspath('Ubicación del GIF con texto a generar')
+
+## Añadir texto al GIF
+geemap.add_text_to_gif(in_gif, out_gif, xy=('3%', '90%'),
+                       text_sequence="Fecha de inicio - fin de la imagen",
+                       font_size=15, font_color='white', duration=70)
+
+geemap.add_text_to_gif(out_gif, out_gif, xy=('3%', '95%'),
+                       text_sequence=fecha_star_list,
+                       font_size=15, font_color='white', duration=70)
+
+geemap.add_text_to_gif(out_gif, out_gif, xy=('22%', '95%'),
+                       text_sequence=fecha_end_list, font_size=15,
+                       font_color='white', duration=70)
+
+geemap.add_text_to_gif(out_gif, out_gif, xy=('30%', '5%'),
+                       text_sequence='GPM: Global Precipitation Measurement (GPM) v6',
+                       font_color='white', font_size = 15, duration=70)                       
+                       
+geemap.add_text_to_gif(out_gif, out_gif, xy=('45%', '10%'),
+                       text_sequence='Huracán Katrina',
+                       font_size = 15, font_color="white",
+                       duration=70)
+                       
+geemap.add_text_to_gif(out_gif, out_gif, xy=('75%', '95%'),
+                       text_sequence='Procesado por: Su nombre',
+                       font_size = 15, font_color="white",
+                       duration=70)
+
+## Mirar el GIF final
+geemap.show_image(out_gif)
+```
+
+
+![Ejemplo de GIF con texto añadido](/foo/huracan_katrina_texto.gif)
+
+En conclusión, este ejemplo muestra que si se puede utilizar tres lenguajes de programación (JavaScript, R y Python) a la vez para poder analizar la data de Google Earth Engine. La plataforma de GEE (que usa JavaScript) sirve mucho para tener un acercamiento inicial de la data que quiere analizar, definir las paletas, definir el área de interés, variar el rango de fechas, etc. Y una vez definido cómo usar los datos, ya se puede pasar a usar el lenguaje de R o Python para analizar de manera más profunda la data y contestar las interrogantes planteadas.
